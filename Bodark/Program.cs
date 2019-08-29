@@ -13,22 +13,70 @@ namespace Bodark
                 throw new ArgumentNullException(nameof(args));
             }
 
+            String help = "Password Generator" +
+                "--count=2      number of passwords" +
+                "--length=25    password length" +
+                "--words=5      number of words in diceware passphrase" +
+                "safari         generate passwords for safari" +
+                "dice(highest   priority diceware password generator" +
+                "" +
+                "Note: dicewareuses eff provided dictionary";
+
+            if (args.Length < 2)
+            {
+                Console.WriteLine(help);
+                System.Environment.Exit(exitCode: 0);
+            }
+
             foreach (String pwd in PsuedoRandomPasswordGenerator(20, 2, false))
             {
                 Console.WriteLine(pwd);
             }
 
-            // MARK: - diceware
-            // dictionary
-            // generate 5 random integers
-            // get mapping and print
-            var map = LaBastion();
-
-            var wordIndexes = FoxSat();
-
-            foreach (var index in wordIndexes)
+            bool diceware = false;
+            bool safari = false;
+            var numberOfPasswords = 1;
+            var lengthOfPasswords = 24;
+            foreach (String arg in args)
             {
-                Console.Write(map[index] + " ");
+                if (arg == "diceware")
+                {
+                    diceware = true;
+                } else if (arg == "safari")
+                {
+                    safari = true;
+                }
+                else if (arg.StartsWith("--count=", StringComparison.Ordinal))
+                {
+                    numberOfPasswords = Int32.Parse(arg.Split('=')[1]);
+                } else if (arg.StartsWith("--length=", StringComparison.Ordinal))
+                {
+                    lengthOfPasswords = Int32.Parse(arg.Split('=')[1]);
+                }
+
+            }
+
+            if (diceware) {
+                var map = LaBastion();
+                List<uint> wordIndexes;
+                for (int i = 0; i < numberOfPasswords; i++)
+                {
+                    wordIndexes = FoxSat();
+
+                    foreach (var index in wordIndexes)
+                    {
+                        Console.Write(map[index] + " ");
+                    }
+                    Console.WriteLine();
+                }
+
+            } else
+            {
+                var passwords = PsuedoRandomPasswordGenerator(lengthOfPasswords, numberOfPasswords, safari);
+                foreach(String password in passwords)
+                {
+                    Console.WriteLine(password);
+                }
             }
             Console.WriteLine();
         }
