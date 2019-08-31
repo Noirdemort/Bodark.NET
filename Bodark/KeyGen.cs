@@ -1,88 +1,73 @@
 ﻿using System;
+using System.Text;
+using Sodium;
 using System.Collections.Generic;
 using System.Security.Cryptography;
 
 namespace Bodark
 {
-    class Program
+    public class KeyGen
     {
-        static void Main(string[] args)
+
+        private static String CommandLineUsageDescription =
+
+            "Password Generator\n" +
+                "\t--count=2      number of passwords\n" +
+                "\t--length=25    password length \n" +
+                "\t--words=5      number of words in diceware passphrase \n" +
+                "\tsafari         generate passwords for safari \n" +
+                "\tdice (highest priority diceware password generator) \n" +
+                "\trsa            generates rsa key pair of 4096 length \n" +
+                "\n" +
+            "Note: diceware uses eff provided dictionary\n";
+
+        private static List<uint> wordIndexes; 
+
+        public  KeyGen()
         {
-            if (args is null)
-            {
-                throw new ArgumentNullException(nameof(args));
-            }
-
-            String help = "Password Generator" +
-                "--count=2      number of passwords" +
-                "--length=25    password length" +
-                "--words=5      number of words in diceware passphrase" +
-                "safari         generate passwords for safari" +
-                "dice(highest   priority diceware password generator" +
-                "" +
-                "Note: dicewareuses eff provided dictionary";
-
-            if (args.Length < 2)
-            {
-                Console.WriteLine(help);
-                System.Environment.Exit(exitCode: 0);
-            }
-
-            foreach (String pwd in PsuedoRandomPasswordGenerator(20, 2, false))
-            {
-                Console.WriteLine(pwd);
-            }
-
-            bool diceware = false;
-            bool safari = false;
-            var numberOfPasswords = 1;
-            var lengthOfPasswords = 24;
-            foreach (String arg in args)
-            {
-                if (arg == "diceware")
-                {
-                    diceware = true;
-                } else if (arg == "safari")
-                {
-                    safari = true;
-                }
-                else if (arg.StartsWith("--count=", StringComparison.Ordinal))
-                {
-                    numberOfPasswords = Int32.Parse(arg.Split('=')[1]);
-                } else if (arg.StartsWith("--length=", StringComparison.Ordinal))
-                {
-                    lengthOfPasswords = Int32.Parse(arg.Split('=')[1]);
-                }
-
-            }
-
-            if (diceware) {
-                var map = LaBastion();
-                List<uint> wordIndexes;
-                for (int i = 0; i < numberOfPasswords; i++)
-                {
-                    wordIndexes = FoxSat();
-
-                    foreach (var index in wordIndexes)
-                    {
-                        Console.Write(map[index] + " ");
-                    }
-                    Console.WriteLine();
-                }
-
-            } else
-            {
-                var passwords = PsuedoRandomPasswordGenerator(lengthOfPasswords, numberOfPasswords, safari);
-                foreach(String password in passwords)
-                {
-                    Console.WriteLine(password);
-                }
-            }
-            Console.WriteLine();
+            wordIndexes = FoxSat();
         }
 
+        public string[] GetKey(int numberOfDiceKeys = 1)
+        {
+            var map = LaBastion();
+            var passwords = new string[numberOfDiceKeys];
+            for (int i = 0; i < numberOfDiceKeys; i++) {
+                string password = "";
+                foreach (var index in wordIndexes)
+                {
+                    password = map[index] + " ";
+                }
 
-        private static string[] PsuedoRandomPasswordGenerator(int passwordLength , int passwordCount, bool browserMode)
+                passwords[i] = password.TrimEnd();
+             }
+            // <summary> Returns Diceware passwords</summary>
+            return passwords;
+        }
+
+        public string[] GetKey(bool safari, int numberOfPasswords = 1, int lengthOfPasswords = 24)
+        {
+            var passwords = PsuedoRandomPasswordGenerator(lengthOfPasswords, numberOfPasswords, safari);
+            return passwords;
+        }
+
+        private string[] RSAKeyPairGenerator()
+        {
+            var seed = PublicKeyBox.GenerateNonce();
+            var keyPair = PublicKeyBox.GenerateSeededKeyPair(seed);
+            var publicKeyString = Encoding.UTF8.GetString(keyPair.PublicKey);
+            var privateKeyString = Encoding.UTF8.GetString(keyPair.PrivateKey);
+            return new[] { publicKeyString, privateKeyString };
+
+        }
+
+        private static string randomString()
+        {
+            var randomBytes = SodiumCore.GetRandomBytes(SodiumCore.GetRandomNumber(1147483647));
+            return Encoding.UTF8.GetString(randomBytes);
+        }
+
+        private string[] PsuedoRandomPasswordGenerator(int passwordLength, int passwordCount, bool browserMode)
         {
             const string set = "qwertyuiopalskQWEPOIRUTYALSKM1230948576NJHGFDVCXZdjfhgmnbxvcz";
             const string specialSet = "qwer!t#y$u%iopalskQWEPOIRUTYALSKM123094@8576NJHGF&DVC^XZdjfhgmnbxvcz";
@@ -91,10 +76,10 @@ namespace Bodark
             byte[] byteArray;
             uint randomInteger;
             char x;
-            for (int i=0; i<passwordCount; i++)
+            for (int i = 0; i < passwordCount; i++)
             {
                 string password = "";
-                for(int j=1; j<=passwordLength; j++)
+                for (int j = 1; j <= passwordLength; j++)
                 {
                     provider = new RNGCryptoServiceProvider();
                     byteArray = new byte[4];
@@ -113,7 +98,8 @@ namespace Bodark
                     }
 
                     password += x;
-                    if (browserMode && j%4==0 && j!=passwordLength) {
+                    if (browserMode && j % 4 == 0 && j != passwordLength)
+                    {
                         password += '-';
                     }
                 }
@@ -122,8 +108,7 @@ namespace Bodark
             return passwordSet;
         }
 
-
-        private static List<uint> FoxSat()
+        private List<uint> FoxSat()
         {
             RNGCryptoServiceProvider provider;
             byte[] byteArray;
@@ -148,8 +133,6 @@ namespace Bodark
             }
             return wordIndexes;
         }
-
-
         private static Dictionary<uint, string> LaBastion()
         {
             var map = new Dictionary<uint, string>();
