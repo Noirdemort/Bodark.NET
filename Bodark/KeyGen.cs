@@ -9,7 +9,7 @@ namespace Bodark
     public class KeyGen
     {
 
-        private static String CommandLineUsageDescription =
+        public static String CommandLineUsageDescription =
 
             "Password Generator\n" +
                 "\t--count=2      number of passwords\n" +
@@ -23,7 +23,7 @@ namespace Bodark
 
         private static List<uint> wordIndexes; 
 
-        public  KeyGen()
+        public KeyGen()
         {
             wordIndexes = FoxSat();
         }
@@ -51,7 +51,7 @@ namespace Bodark
             return passwords;
         }
 
-        private string[] RSAKeyPairGenerator()
+        public string[] RSAKeyPairGenerator()
         {
             var seed = PublicKeyBox.GenerateNonce();
             var keyPair = PublicKeyBox.GenerateSeededKeyPair(seed);
@@ -61,13 +61,13 @@ namespace Bodark
 
         }
 
-        private static string randomString()
+        public static string randomString()
         {
             var randomBytes = SodiumCore.GetRandomBytes(SodiumCore.GetRandomNumber(1147483647));
             return Encoding.UTF8.GetString(randomBytes);
         }
 
-        private string[] PsuedoRandomPasswordGenerator(int passwordLength, int passwordCount, bool browserMode)
+        public string[] PsuedoRandomPasswordGenerator(int passwordLength, int passwordCount, bool browserMode)
         {
             const string set = "qwertyuiopalskQWEPOIRUTYALSKM1230948576NJHGFDVCXZdjfhgmnbxvcz";
             const string specialSet = "qwer!t#y$u%iopalskQWEPOIRUTYALSKM123094@8576NJHGF&DVC^XZdjfhgmnbxvcz";
@@ -133,7 +133,8 @@ namespace Bodark
             }
             return wordIndexes;
         }
-        private static Dictionary<uint, string> LaBastion()
+
+        public static Dictionary<uint, string> LaBastion()
         {
             var map = new Dictionary<uint, string>();
             map.Add(11111, "abacus");

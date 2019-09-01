@@ -13,13 +13,11 @@ namespace Bodark
 
             if (args.Length < 1)
             {
-                Environment.Exit(exitCode: 1);
+                Environment.Exit(1);
             }
 
-            Environment.Exit(exitCode: 0);
+            Environment.Exit(0);
         }
-
-
     }
 }
 

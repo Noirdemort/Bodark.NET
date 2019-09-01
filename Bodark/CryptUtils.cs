@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 using Sodium;
 
 namespace Bodark
@@ -10,7 +11,22 @@ namespace Bodark
             
         }
 
-        private static string[] AESEncryption(string key, string plainText) 
+        public static string SimpleAESEncryption(string key, string plainText, byte[] nonce)
+        {
+            var encodedKey = Encoding.UTF8.GetBytes(key);
+            var cipherText = SecretAead.Encrypt(Encoding.UTF8.GetBytes(plainText), nonce, encodedKey, null);
+            return Encoding.UTF8.GetString(cipherText);
+        }
+
+        public static string SimpleAESDecryption(string key, string cipherText, byte[] nonce)
+        {
+            var cipherTextInternal = Encoding.UTF8.GetBytes(cipherText);
+            var encodedKey = Encoding.UTF8.GetBytes(key);
+            var plainText = SecretAead.Decrypt(cipherTextInternal, nonce, encodedKey, null);
+            return Encoding.UTF8.GetString(plainText);
+        }
+
+        public static string[] AESEncryption(string key, string plainText) 
         {
             var nonce = SecretAead.GenerateNonce();
             var encodedKey = Encoding.UTF8.GetBytes(key);
@@ -19,7 +35,7 @@ namespace Bodark
             return new[] { Encoding.UTF8.GetString(cipherText), Encoding.UTF8.GetString(nonce), Encoding.UTF8.GetString(encodedData) };
         }
 
-        private static string AESDecryption(string key, string cipherText, string nonce, string additionalData)
+        public static string AESDecryption(string key, string cipherText, string nonce, string additionalData)
         {
             var cipherTextInternal = Encoding.UTF8.GetBytes(cipherText);
             var privateNonce = Encoding.UTF8.GetBytes(nonce);
@@ -29,7 +45,7 @@ namespace Bodark
             return Encoding.UTF8.GetString(plainText);
         }
 
-        private static string[] RSAEncryption(string publicKey, string privateKey, string plainText)
+        public static string[] RSAEncryption(string publicKey, string privateKey, string plainText)
         {
             var encodedPrivateKey = Encoding.UTF8.GetBytes(privateKey);
             var encodedPublicKey = Encoding.UTF8.GetBytes(publicKey);
@@ -39,7 +55,7 @@ namespace Bodark
 
         }
 
-        private static string RSADecryption(string privateKey, string cipherText, string nonce, string publicKey)
+        public static string RSADecryption(string privateKey, string cipherText, string nonce, string publicKey)
         {
             var encodedPrivateKey = Encoding.UTF8.GetBytes(privateKey);
             var encodedPublicKey = Encoding.UTF8.GetBytes(publicKey);
@@ -49,14 +65,14 @@ namespace Bodark
             return Encoding.UTF8.GetString(plainText);
         }
 
-        private static string AnonymousRSAEncryption(string publicKey, string plainText)
+        public static string AnonymousRSAEncryption(string publicKey, string plainText)
         {
             var encodedPublicKey = Encoding.UTF8.GetBytes(publicKey);
             var cipherText = SealedPublicKeyBox.Create(plainText, encodedPublicKey);
             return Encoding.UTF8.GetString(cipherText);
         }
 
-        private static string AnonymousRSADecryption(string privateKey, string cipherText)
+        public static string AnonymousRSADecryption(string privateKey, string cipherText)
         {
             var encodedPrivateKey = Encoding.UTF8.GetBytes(privateKey);
             var keyPair = PublicKeyBox.GenerateKeyPair(encodedPrivateKey);
@@ -64,33 +80,33 @@ namespace Bodark
             return Encoding.UTF8.GetString(plainText);
         }
 
-        private static string sign(string privateKey, string cipherText)
+        public static string sign(string privateKey, string cipherText)
         {
             var encodedKey = Encoding.UTF8.GetBytes(privateKey);
             byte[] signature = SecretKeyAuth.SignHmacSha512(cipherText, encodedKey);
             return Encoding.UTF8.GetString(signature);
         }
 
-        private static string hash512(string message)
+        public static string hash512(string message)
         {
             var hash = CryptoHash.Sha512(message);
             return Encoding.UTF8.GetString(hash);
         }
 
-        private static bool verify(string message, string signature, string key)
+        public static bool verify(string message, string signature, string key)
         {
             var encodedSignature = Encoding.UTF8.GetBytes(signature);
             var encodedKey = Encoding.UTF8.GetBytes(key);
             return SecretKeyAuth.VerifyHmacSha512(message, encodedSignature, encodedKey);
         }
 
-        private static string randomString()
+        public static string randomString()
         {
             var randomBytes = SodiumCore.GetRandomBytes(SodiumCore.GetRandomNumber(1147483647));
             return Encoding.UTF8.GetString(randomBytes);
         }
 
-        private static string passwordHashing(string key)
+        public static string passwordHashing(string key)
         {
             var hash = PasswordHash.ScryptHashString(key, PasswordHash.Strength.MediumSlow);
             return hash;
@@ -108,7 +124,7 @@ namespace Bodark
             secretKey = SodiumCore.GetRandomBytes(SodiumCore.GetRandomNumber(1147483647));
         }
 
-        private bool computeSharedSecret(string foreignSecret)
+        public bool computeSharedSecret(string foreignSecret)
         {
             try
             {
@@ -121,13 +137,13 @@ namespace Bodark
             }
         }
 
-        private string exportPublicKey()
+        public string exportPublicKey()
         {
             byte[] export = ScalarMult.Base(secretKey);
             return Encoding.UTF8.GetString(export);
         }
 
-        private string getEncryptionKey()
+        public string getEncryptionKey()
         {
             if (sharedSecret != null)
             {
