@@ -21,6 +21,7 @@ namespace Bodark
                 "\n" +
             "Note: diceware uses eff provided dictionary\n";
 
+
         private static List<uint> wordIndexes; 
 
         public KeyGen()

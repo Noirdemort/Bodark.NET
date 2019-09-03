@@ -22,7 +22,7 @@ namespace Bodark
             secretKey = key;
             client = new MongoClient("mongodb://localhost:27017");
             database = client.GetDatabase("vault");
-            collection = database.GetCollection<BsonDocument>("bar");
+            collection = database.GetCollection<BsonDocument>("locker");
         }
 
         public void addKey(string website, string username, string password)

@@ -137,6 +137,13 @@ namespace Bodark
             }
         }
 
+        public string computeFromPreKnownKey(string foreignKey, byte[] privateKey) 
+        {
+            var encodedForeignSecret = Encoding.UTF8.GetBytes(foreignKey);
+            sharedSecret = ScalarMult.Mult(privateKey, encodedForeignSecret);
+            return Encoding.UTF8.GetString(sharedSecret);
+        }
+
         public string exportPublicKey()
         {
             byte[] export = ScalarMult.Base(secretKey);
